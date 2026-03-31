@@ -89,10 +89,8 @@
 
 	# Shortened `git checkout`
 	ch = checkout
-	# Switch to master branch
-	chm = checkout master
-	# Switch to main branch
-	chmn = checkout main
+	# Switch to default branch
+	chm = "!git checkout $(git default-branch)"
 	# Switch to previously active branch
 	back = checkout -
 	# Create new branch from current and switch to it
@@ -115,20 +113,16 @@
 	plf = "!f() { BRANCH=$(git branch-name); if [[ $BRANCH == HEAD ]]; then echo 'Error: cannot force pull in detached HEAD state' >&2; return 1; fi; git fetch origin && git reset --hard \"origin/$BRANCH\"; }; f"
 	# Shortened `git rebase`
 	r = rebase
-	# Shortened `git rebase master`
-	rms = rebase master
-	# Shortened `git rebase main`
-	rmn = rebase main
+	# Rebase onto default branch
+	rd = "!git rebase $(git default-branch)"
 	# Shortened `git rebase --abort`
 	ra = rebase --abort
 	# Shortened `git rebase --continue`
 	rc = rebase --continue
 	# Shortened `git merge`
 	m = merge
-	# Shortened `git merge master`
-	mms = merge master
-	# Shortened `git merge main`
-	mmn = merge main
+	# Merge default branch
+	md = "!git merge $(git default-branch)"
 	# Shortened `git merge --abort`
 	ma = merge --abort
 	# Shortened `git merge --continue`

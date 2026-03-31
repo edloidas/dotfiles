@@ -79,6 +79,19 @@ path=(
   $path
 )
 
+# === Git Fuzzy Search ===
+
+# Fuzzy search git aliases and insert selected into shell buffer (gf is taken by oh-my-zsh)
+gfz() {
+  local selected
+  selected=$(git config --list \
+    | grep '^alias\.' \
+    | sed 's/^alias\.//' \
+    | column -t -s '=' \
+    | fzf --nth=1 --preview 'git config alias.{1}')
+  [[ -n "$selected" ]] && print -z "git $(echo "$selected" | awk '{print $1}')"
+}
+
 # === Aliases ===
 
 alias rename="rename.sh"

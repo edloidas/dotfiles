@@ -1,0 +1,86 @@
+alias.author=config user.email
+alias.base=!git merge-base $(git default-branch) HEAD
+alias.aliases=!f() { git config --list | grep --color 'alias\.[a-zA-Z0-9]\{1,\}='; }; f
+alias.tags=tag -l
+alias.tagsh=tag -l --points-at HEAD
+alias.it=!git init && git commit -m "root" --allow-empty
+alias.orphan=!f() { NAME=${1:-"orphan"} && git checkout --orphan "$NAME" && git rm --cached -r . && git add .gitignore && git clean -fd; }; f
+alias.sclone=clone --depth 1
+alias.lol=log --graph --oneline --format='%C(auto)%h %s%d %C(Cyan)[%cr] %C(Magenta)<%an>'
+alias.lola=!git lol --all
+alias.lolr=!git lola $(git reflog | cut -c1-7)
+alias.recap=!git log --author=$(git author) --oneline --no-merges --format='%C(Yellow)%h%Creset %C(Cyan)[%ad]%Creset %s' --date=short
+alias.today=!git log --author=$(git author) --oneline --no-merges --format='%C(Yellow)%h%Creset %C(Cyan)[%ad]%Creset %s' --date=relative --since=1am
+alias.daysago=!f() { COUNT=${1:-"1"} && git recap --until=$COUNT.day --since=$((++COUNT)).day; }; f
+alias.ch=checkout
+alias.chm=!git checkout $(git default-branch)
+alias.back=checkout -
+alias.new=checkout -b
+alias.del=branch -D
+alias.dela=!f() { if [[ -z $1 ]]; then echo 'Error: pattern required' >&2; return 1; fi; git branch | grep -v '^\*' | grep -E "^\s*${1}" | sed 's/^\s*//' | xargs -I {} git branch -D {}; }; f
+alias.b=branch
+alias.p=push
+alias.pt=push --tags
+alias.pl=pull
+alias.plr=pull --rebase
+alias.plf=!f() { BRANCH=$(git branch-name); if [[ $BRANCH == HEAD ]]; then echo 'Error: cannot force pull in detached HEAD state' >&2; return 1; fi; git fetch origin && git reset --hard "origin/$BRANCH"; }; f
+alias.r=rebase
+alias.rd=!git rebase $(git default-branch)
+alias.ra=rebase --abort
+alias.rc=rebase --continue
+alias.m=merge
+alias.md=!git merge $(git default-branch)
+alias.ma=merge --abort
+alias.mc=merge --continue
+alias.bkp=!git branch "$(git branch-name)_$(date +%Y%m%d-%H%M%S)"
+alias.move=!f() { COMMIT=${1:-"HEAD~1"} && BRANCH=$(git branch-name) && git checkout "$(git commit-hash)" && git branch -f "$BRANCH" "$COMMIT" && git stash && git checkout "$BRANCH" && echo "
+alias.publish=!git push -u origin $(git branch-name)
+alias.unpublish=!git push origin :$(git branch-name)
+alias.please=push --force-with-lease
+alias.create=!f() { [[ -n $1 ]] && git checkout -b "$1" && git publish; }; f
+alias.recreate=!f() { if [[ -z $1 ]]; then return 1; fi; git checkout "$1" && git unpublish && git checkout "$(git default-branch)" && git branch -D "$1" && git checkout -b "$1" && git publish; }; f
+alias.return=!f() { PREV=$(git branch-name); DEFAULT=$(git default-branch); CURR=${1:-"$DEFAULT"}; if [[ $PREV == main || $PREV == master ]]; then echo "Can't remove default branch '$PREV'."; elif [[ $PREV == "$CURR" ]]; then echo "Already on '$PREV'."; else git checkout "$CURR" && git del "$PREV"; fi; }; f
+alias.rework=!f() { COUNT=${1:-"2"} && git rebase -i HEAD~$COUNT; }; f
+alias.squash=!f() { N=${1:-1}; SHA=$(git rev-parse HEAD~$N) && git reset --soft HEAD~$((N+1)) && git commit -C "$SHA"; }; f
+alias.repick=!f() { if [[ -z $1 ]]; then echo 'Usage: git repick <base> [count]' >&2; return 1; fi; BASE="$1"; COUNT=${2:-1}; BRANCH=$(git branch-name); if [[ $BRANCH == HEAD ]]; then echo 'Error: detached HEAD' >&2; return 1; fi; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'Error: working tree not clean, commit or stash changes first' >&2; return 1; fi; COMMITS=$(git log --reverse --format=%H -n "$COUNT" HEAD); if [[ -z $COMMITS ]]; then echo 'Error: no commits found' >&2; return 1; fi; BKP="${BRANCH}_repick_$(date +%Y%m%d-%H%M%S)"; git branch "$BKP" || return 1; git reset --hard "$BASE" || { echo "Error: reset to '$BASE' failed. Backup at '$BKP'." >&2; return 1; }; if git cherry-pick $COMMITS; then git branch -D "$BKP"; echo "Repicked $COUNT commit(s) onto $BASE. Backup removed."; else echo "Cherry-pick failed. Backup at '$BKP'. To recover: git cherry-pick --abort && git reset --hard $BKP" >&2; return 1; fi; }; f
+alias.stash0=stash --keep-index
+alias.stash1=stash
+alias.stash2=stash --include-untracked
+alias.stash3=stash --all
+alias.stashes=stash list
+alias.unstash=stash pop
+alias.unshallow=!git remote set-branches origin '*' && git fetch --unshallow --verbose
+alias.s=status
+alias.shorty=status --short --branch
+alias.a=add --all
+alias.c=!f() { git add --all && git commit -m "$*"; }; f
+alias.yolo=!f() { MSG=$(curl -s https://whatthecommit.com/index.txt); git add --all && git commit -m "${MSG:-YOLO}"; }; f
+alias.gud=!f() { while getopts 'ap' flag; do case "${flag}" in a) a_flag='true' ;; p) p_flag='true' ;; esac; done; if [[ -n $a_flag ]]; then git a; fi; git commit --amend --no-edit; if [[ -n $p_flag ]]; then git please; fi; }; f
+alias.commend=commit --amend
+alias.unstage=reset HEAD
+alias.undo=!f() { COMMIT=${1:-"HEAD"} && git revert --no-edit $COMMIT; }; f
+alias.diffh=diff HEAD~1
+alias.diffc=diff --cached
+alias.diffn=diff --name-only
+alias.diffm=!git diff --name-only origin/$(git default-branch)
+alias.diffmin=diff --word-diff-regex=.
+alias.diffminc=diff --color-words=.
+alias.die=!f() { re='^[0-9]+$'; if [[ $1 =~ $re ]]; then COMMIT=HEAD~$1; else COMMIT=HEAD; fi; git reset --hard $COMMIT; }; f
+alias.res=!f() { re='^[0-9]+$'; if [[ $1 =~ $re ]]; then COMMIT=HEAD~$1; else COMMIT=HEAD~1; fi; git reset $COMMIT; }; f
+alias.hide=update-index --assume-unchanged
+alias.unhide=update-index --no-assume-unchanged
+alias.hidden=!git ls-files -v | grep '^[[:lower:]]'
+alias.ignored=!git status -s --ignored | grep '^!!'
+alias.origin=!f() { git remote get-url origin 2>/dev/null | sed -E -e 's#\.git$##' -e 's#.*/##'; }; f
+alias.rename=!f() { if [[ -z $1 ]]; then echo 'Error: new name required' >&2; return 1; fi; URL=$(git remote get-url origin); BASE="${URL%/*}"; OLD="${URL##*/}"; SUFFIX=''; case "$OLD" in *.git) SUFFIX='.git' ;; esac; NEWURL="${BASE}/$1${SUFFIX}"; git remote set-url origin "$NEWURL"; git remote set-url --push origin "$NEWURL"; git remote -v; }; f
+alias.newi=!f() { BRANCH="issue-$1" && git checkout -b "$BRANCH"; }; f
+alias.deli=!f() { BRANCH="issue-$1" && git branch -D "$BRANCH"; }; f
+alias.chi=!f() { BRANCH="issue-$1" && git checkout "$BRANCH"; }; f
+alias.che=!f() { BRANCH="epic-$1" && git checkout "$BRANCH"; }; f
+alias.chn=checkout next
+alias.clonee=!f() { REPO="git@github.com:enonic/$1.git" && git clone "$REPO"; }; f
+alias.cloneeh=!f() { REPO="https://github.com/enonic/$1.git" && git clone "$REPO"; }; f
+alias.createi=!f() { BRANCH="issue-$1" && git checkout -b "$BRANCH" && git publish; }; f
+alias.cl=!f() { REPO="git@github.com:edloidas/$1.git" && git clone "$REPO"; }; f
+alias.clh=!f() { REPO="https://github.com/edloidas/$1.git" && git clone "$REPO"; }; f
+alias.files=!f() { REF="${1:-HEAD}"; git ls-tree -r --name-only "$REF" | tree --fromfile -C --dirsfirst --noreport; }; f
