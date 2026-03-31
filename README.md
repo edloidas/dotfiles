@@ -1,16 +1,20 @@
-Cheat Sheets
-============
+# dotfiles
 
-> A compilation of Cheat Sheets and Configurations various types of tools and editors.
+Personal dotfiles for macOS.
 
-Project stores configurations for different projects. Each tool/editor has set of configuration files that can be downloaded. There are also a scripts that will help to apply some of the configurations.
+## Contents
 
-___
+- `.gitconfig` — git config with aliases, delta, SSH signing
+- `.zshrc` — zsh with Oh My Zsh, Powerlevel10k, aliases, PATH
 
-* [cmder](config/cmder/README.md) - a lovely console emulator package for Windows.
-* [git](config/git/README.md) - a distributed version control system.
-* [mintty](config/mintty/README.md) - a distributed version control system.
+## Install
 
-## License ##
+```sh
+./install.sh
+```
 
-[MIT](LICENSE) © [Mikita Taukachou](https://edloidas.com)
+Creates symlinks in `$HOME`. Existing symlinks are replaced; existing files are backed up as `<file>.bak`.
+
+## License
+
+[MIT](LICENSE) © [Mikita Taukachou](https://edloidas.io)

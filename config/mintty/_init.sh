@@ -1,1 +1,0 @@
-cp -R .minttyrc "$HOME"

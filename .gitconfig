@@ -1,12 +1,32 @@
+[user]
+	name = Mikita Taukachou
+	email = edloidas@gmail.com
+	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKuJFvESPW+08kC2OQcTx9GZ1jnSwIKSLK4bFiU9D7f6
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+	allowedSignersFile = ~/.config/git/allowed_signers
+[commit]
+	gpgsign = true
 [push]
 	default = simple
-[credential]
-	helper = wincred
-[color]
-	ui = true
 [core]
+	editor = cursor --wait
 	autocrlf = input
-	editor = code --wait
+	pager = delta
+[interactive]
+	# https://github.com/dandavison/delta
+	diffFilter = delta --color-only --dark
+[delta]
+	navigate = true
+	side-by-side = true
+	line-numbers = true
+	syntax-theme = Monokai Extended
+[merge]
+	conflictstyle = diff3
+[diff]
+	colorMoved = default
 [alias]
 	#
 	# Utilities
@@ -18,10 +38,12 @@
 	commit-hash = rev-parse HEAD
 	# Get the current branch name (used in other aliases)
 	branch-name = rev-parse --abbrev-ref HEAD
-	# Get hash of the last common commit with master branch
-	base = merge-base master HEAD
+	# Detect the default branch (main or master)
+	default-branch = "!f() { for b in main master; do git show-ref --verify --quiet refs/heads/$b && echo $b && return; done; echo master; }; f"
+	# Get hash of the last common commit with default branch
+	base = "!git merge-base $(git default-branch) HEAD"
 	# Given a merge commit, find the span of commits that exist(ed) on that branch
-	merge-span = "!f() { echo $(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f1)$1$(git log -1 $2 --merges --pretty=format:%P | cut -d' ' -f2); }; f"
+	merge-span = "!f() { PARENTS=$(git log -1 $2 --merges --pretty=format:%P); echo $(echo $PARENTS | cut -d' ' -f1)$1$(echo $PARENTS | cut -d' ' -f2); }; f"
 	# Show aliases with name highlight
 	aliases = "!f() { git config --list | grep --color 'alias\\.[a-zA-Z0-9]\\{1,\\}='; }; f"
 	# Show tags
@@ -37,7 +59,7 @@
 	it = "!git init && git commit -m \"root\" --allow-empty"
 	# Create a new branch with no parents and remove all files, except ignored ones
 	# Useful when creating branch for documentation and publishing as `gh-pages`
-	orphan = "!f() { NAME=${1:-\"orphan\"} && git checkout --orphan $NAME && git rm --cached -r . && git add .gitignore && git clean -fd; }; f"
+	orphan = "!f() { NAME=${1:-\"orphan\"} && git checkout --orphan \"$NAME\" && git rm --cached -r . && git add .gitignore && git clean -fd; }; f"
 	# Create a shallow clone with a history truncated to 1 commit
 	sclone = clone --depth 1
 
@@ -77,6 +99,8 @@
 	new = checkout -b
 	# Force delete branch
 	del = branch -D
+	# Remove all branches, started with provided pattern
+	dela = "!f() { if [[ -z $1 ]]; then echo 'Error: pattern required' >&2; return 1; fi; git branch | grep -v '^\\*' | grep -E \"^\\s*${1}\" | sed 's/^\\s*//' | xargs -I {} git branch -D {}; }; f"
 	# Shortened `git branch`
 	b = branch
 	# Shortened `git push`
@@ -87,6 +111,8 @@
 	pl = pull
 	# Shortened `git pull --rebase`
 	plr = pull --rebase
+	# Pull and override local changes with remote (force)
+	plf = "!f() { BRANCH=$(git branch-name); if [[ $BRANCH == HEAD ]]; then echo 'Error: cannot force pull in detached HEAD state' >&2; return 1; fi; git fetch origin && git reset --hard \"origin/$BRANCH\"; }; f"
 	# Shortened `git rebase`
 	r = rebase
 	# Shortened `git rebase master`
@@ -108,9 +134,9 @@
 	# Shortened `git merge --continue`
 	mc = merge --continue
 	# Create a new branch by adding a timestamp to the current branch name
-	bkp = "!git branch $(git branch-name)_$(date +%Y%m%d-%H%M%S)"
+	bkp = "!git branch \"$(git branch-name)_$(date +%Y%m%d-%H%M%S)\""
 	# Link current branch to the specific commit
-	move = "!f() { COMMIT=${1:-\"HEAD~1\"} && BRANCH=$(git branch-name) && git checkout $(git commit-hash) && git branch -f $BRANCH $COMMIT && git stash && git checkout $BRANCH && echo \"\nUse 'git stash pop', if you had uncommited changes.\"; }; f"
+	move = "!f() { COMMIT=${1:-\"HEAD~1\"} && BRANCH=$(git branch-name) && git checkout \"$(git commit-hash)\" && git branch -f \"$BRANCH\" \"$COMMIT\" && git stash && git checkout \"$BRANCH\" && echo \"\nUse 'git stash pop', if you had uncommited changes.\"; }; f"
 	# Push the current branch to the remote "origin"and set it to track the upstream branch
 	publish = "!git push -u origin $(git branch-name)"
 	# Delete the remote version of the current branch
@@ -119,17 +145,22 @@
 	# nobody has updated the branch upstream
 	please = push --force-with-lease
 	# Create new branch from the current, switch to it and publish
-	create = "!f() { [[ -n $@ ]] && git checkout -b \"$@\" && git publish; }; f"
+	create = "!f() { [[ -n $1 ]] && git checkout -b \"$1\" && git publish; }; f"
 	# Delete a branch and recreate it from master — useful if you have, dev
 	# and a master branch and they could conceivably go out of sync
-	recreate = "!f() { [[ -n $@ ]] && git checkout \"$@\" && git unpublish && git checkout master && git branch -D \"$@\" && git checkout -b \"$@\" && git publish; }; f"
+	recreate = "!f() { if [[ -z $1 ]]; then return 1; fi; git checkout \"$1\" && git unpublish && git checkout \"$(git default-branch)\" && git branch -D \"$1\" && git checkout -b \"$1\" && git publish; }; f"
 	# Checkout another branch (master by default) and remove the branch
 	# you was previously on. Can't remove master or the current branch.
-	return = "!f() { PREV=$(git branch-name) && CURR=${1:-\"master\"} && if [[ $PREV == \"master\" ]]; then echo \"Can’t remove 'master' branch.\"; elif [[ $PREV == $CURR ]]; then echo \"Already on '$PREV'.\"; else git checkout \"$CURR\" && git del \"$PREV\"; fi }; f"
+	return = "!f() { PREV=$(git branch-name); DEFAULT=$(git default-branch); CURR=${1:-\"$DEFAULT\"}; if [[ $PREV == main || $PREV == master ]]; then echo \"Can't remove default branch '$PREV'.\"; elif [[ $PREV == \"$CURR\" ]]; then echo \"Already on '$PREV'.\"; else git checkout \"$CURR\" && git del \"$PREV\"; fi; }; f"
 	# Update and rebase previous commits. First argument is the number of commits (2 by default)
 	rework = "!f() { COUNT=${1:-\"2\"} && git rebase -i HEAD~$COUNT; }; f"
 	# Interactively rebase all the commits on the current branch
 	rework-branch = "!git rebase -i $(git base)"
+	# Squash last N commits (default 1) into the one before them, keeping its message
+	squash = "!f() { N=${1:-1}; SHA=$(git rev-parse HEAD~$N) && git reset --soft HEAD~$((N+1)) && git commit -C \"$SHA\"; }; f"
+	# Cherry-pick last N commits (default 1) onto a new base after history rewrite
+	# Usage: git repick <base> [count]
+	repick = "!f() { if [[ -z $1 ]]; then echo 'Usage: git repick <base> [count]' >&2; return 1; fi; BASE=\"$1\"; COUNT=${2:-1}; BRANCH=$(git branch-name); if [[ $BRANCH == HEAD ]]; then echo 'Error: detached HEAD' >&2; return 1; fi; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'Error: working tree not clean, commit or stash changes first' >&2; return 1; fi; COMMITS=$(git log --reverse --format=%H -n \"$COUNT\" HEAD); if [[ -z $COMMITS ]]; then echo 'Error: no commits found' >&2; return 1; fi; BKP=\"${BRANCH}_repick_$(date +%Y%m%d-%H%M%S)\"; git branch \"$BKP\" || return 1; git reset --hard \"$BASE\" || { echo \"Error: reset to '$BASE' failed. Backup at '$BKP'.\" >&2; return 1; }; if git cherry-pick $COMMITS; then git branch -D \"$BKP\"; echo \"Repicked $COUNT commit(s) onto $BASE. Backup removed.\"; else echo \"Cherry-pick failed. Backup at '$BKP'. To recover: git cherry-pick --abort && git reset --hard $BKP\" >&2; return 1; fi; }; f"
 	# Stash only unstaged changes to tracked files
 	stash0 = stash --keep-index
 	# Stash tracked files (default)
@@ -163,7 +194,7 @@
 	# Add all and commit with message
 	c = "!f() { git add --all && git commit -m \"$*\"; }; f"
 	# Same as `c`, but with a random commit message
-	yolo = "!f() { git add --all && git commit -m \"$(curl -s https://whatthecommit.com/index.txt)\"; }; f"
+	yolo = "!f() { MSG=$(curl -s https://whatthecommit.com/index.txt); git add --all && git commit -m \"${MSG:-YOLO}\"; }; f"
 	# Update previous commit with staged changes
 	# Supports flags `-a` (stage all files before commit) and `-p` (force push with lease after commit)
 	# gud = commit --amend --no-edit
@@ -176,14 +207,14 @@
 	unstage = reset HEAD
 	# Do commit with changes, that will revert changes of the specified commit (HEAD by default)
 	undo = "!f() { COMMIT=${1:-\"HEAD\"} && git revert --no-edit $COMMIT; }; f"
-	# Show changes that have been staged
+	# Show changes between current and previous commit
 	diffh = diff HEAD~1
 	# Show changes that have been staged
 	diffc = diff --cached
 	# Show list of changed files
 	diffn = diff --name-only
 	# Show list of changed files that differ from "origin/master"
-	diffm = diff --name-only origin/master
+	diffm = "!git diff --name-only origin/$(git default-branch)"
 	# Highlight modified symbols, not lines
 	# Useful for minified files, since they are usually one-liners
 	diffmin = diff --word-diff-regex=.
@@ -220,6 +251,38 @@
 	#
 
 	# Show the origin name for this repository
-	origin = "!f() { echo `git remote get-url origin` | grep -oP '(?<=.)[^/]+(?=\\.git)'; }; f"
+	# -P flag is used to enable Perl-compatible regular expressions and not available on MacOS
+	# origin = "!f() { echo `git remote get-url origin` | grep -oP '(?<=.)[^/]+(?=\\.git)'; }; f"
+	origin = "!f() { git remote get-url origin 2>/dev/null | sed -E -e 's#\\.git$##' -e 's#.*/##'; }; f"
 	# Replace the origin remote name (both fetch and push) with new value
-	rename = "!f() { if [[ -z $1 ]]; then echo 'No argument supplied' && exit 1; fi; URL=`git remote get-url origin`; NEWURL=$(echo $URL | perl -pe \"s/(?<=.)[^\\/]+(?=\\.git)/$1/g\"); git remote set-url origin $NEWURL; git remote set-url --push origin $NEWURL; git remote -v; }; f"
+	rename = "!f() { if [[ -z $1 ]]; then echo 'Error: new name required' >&2; return 1; fi; URL=$(git remote get-url origin); BASE=\"${URL%/*}\"; OLD=\"${URL##*/}\"; SUFFIX=''; case \"$OLD\" in *.git) SUFFIX='.git' ;; esac; NEWURL=\"${BASE}/$1${SUFFIX}\"; git remote set-url origin \"$NEWURL\"; git remote set-url --push origin \"$NEWURL\"; git remote -v; }; f"
+
+	#
+	# Workflow
+	#
+
+	# Create new `issue-*` branch from current and switch to it
+	newi = "!f() { BRANCH=\"issue-$1\" && git checkout -b \"$BRANCH\"; }; f"
+	# Remove `issue-*` branch
+	deli = "!f() { BRANCH=\"issue-$1\" && git branch -D \"$BRANCH\"; }; f"
+	# Switch to `issue-*` branch
+	chi = "!f() { BRANCH=\"issue-$1\" && git checkout \"$BRANCH\"; }; f"
+	# Switch to `epic-*` branch
+	che = "!f() { BRANCH=\"epic-$1\" && git checkout \"$BRANCH\"; }; f"
+	# Switch to next branch
+	chn = checkout next
+	# Clone Enonic repo with SSH
+	clonee = "!f() { REPO=\"git@github.com:enonic/$1.git\" && git clone \"$REPO\"; }; f"
+	# Clone Enonic repo with HTTPS
+	cloneeh = "!f() { REPO=\"https://github.com/enonic/$1.git\" && git clone \"$REPO\"; }; f"
+	# Create new `issue-*` branch from current, switch to it and publish
+	createi = "!f() { BRANCH=\"issue-$1\" && git checkout -b \"$BRANCH\" && git publish; }; f"
+
+	# Clone edloidas repo with SSH
+	cl = "!f() { REPO=\"git@github.com:edloidas/$1.git\" && git clone \"$REPO\"; }; f"
+	# Clone edloidas repo with HTTPS
+	clh = "!f() { REPO=\"https://github.com/edloidas/$1.git\" && git clone \"$REPO\"; }; f"
+	files = "!f() { REF=\"${1:-HEAD}\"; git ls-tree -r --name-only \"$REF\" | tree --fromfile -C --dirsfirst --noreport; }; f"
+
+[rebase]
+	ff = true

@@ -1,5 +1,48 @@
-.credentials
-npm-debug.log
-
 .DS_Store
 Desktop.ini
+
+# AI tools
+.claude
+.agents
+
+# Environment and secrets
+.env
+.env.*
+*.env
+
+# Keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.crt
+*.der
+
+# SSH
+.ssh/
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+*.pub
+
+# Credentials and tokens
+.credentials
+.netrc
+.npmrc
+.pypirc
+auth.json
+credentials.json
+token.json
+secrets.json
+service-account*.json
+
+# Password managers / vaults
+*.kdbx
+*.1pux
+
+# Cloud provider configs (may contain tokens)
+.aws/credentials
+.gcloud/
+gcloud-service-key.json
