@@ -5,6 +5,9 @@ Desktop.ini
 .claude
 .agents
 
+# Common binary/tool names that may land in working dir
+fzf
+
 # Environment and secrets
 .env
 .env.*
