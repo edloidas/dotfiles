@@ -11,6 +11,7 @@
 	gpgsign = true
 [push]
 	default = simple
+	autoSetupRemote = true
 [core]
 	editor = cursor --wait
 	autocrlf = input
@@ -23,10 +24,13 @@
 	side-by-side = true
 	line-numbers = true
 	syntax-theme = Monokai Extended
+[pull]
+	rebase = true
 [merge]
 	conflictstyle = diff3
 [diff]
 	colorMoved = default
+	renames = copy
 [alias]
 	#
 	# Utilities
@@ -278,5 +282,7 @@
 	clh = "!f() { REPO=\"https://github.com/edloidas/$1.git\" && git clone \"$REPO\"; }; f"
 	files = "!f() { REF=\"${1:-HEAD}\"; git ls-tree -r --name-only \"$REF\" | tree --fromfile -C --dirsfirst --noreport; }; f"
 
+[rerere]
+	enabled = true
 [rebase]
 	ff = true
