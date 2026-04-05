@@ -1,0 +1,27 @@
+# Font Configuration
+font-family = "FiraCode Nerd Font Mono"
+font-size = 14
+adjust-cell-height = 20%
+
+# Background Transparency
+background-opacity = 0.8
+
+# Background Blur (1-20)
+background-blur = 8
+
+# Theme
+# theme = "Catppuccin Mocha"
+theme = "Tomorrow Night"
+
+# Notifications
+# OS notification + bell when an unfocused terminal finishes a command that took >10s.
+# Requires shell integration (enabled by default in Ghostty).
+# macOS: set Ghostty notification style to "Alerts" in System Settings for visible popups.
+desktop-notifications = true
+notify-on-command-finish = unfocused
+notify-on-command-finish-after = 10s
+notify-on-command-finish-action = bell,notify
+
+# Bell
+# system: play macOS alert sound, attention: bounce dock icon, title: bell emoji in tab title
+bell-features = system,attention,title

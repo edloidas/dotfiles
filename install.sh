@@ -8,9 +8,15 @@ DOTFILES=(
   .zshrc
 )
 
+CONFIGS=(
+  config/ghostty/config
+)
+
 link() {
   local src="$DOTFILES_DIR/$1"
-  local dst="$HOME/$1"
+  local dst="$HOME/$2"
+
+  mkdir -p "$(dirname "$dst")"
 
   if [[ -L "$dst" ]]; then
     echo "Replacing symlink: $dst"
@@ -26,7 +32,11 @@ link() {
 }
 
 for dotfile in "${DOTFILES[@]}"; do
-  link "$dotfile"
+  link "$dotfile" "$dotfile"
+done
+
+for cfg in "${CONFIGS[@]}"; do
+  link "$cfg" ".$cfg"
 done
 
 echo "Done."

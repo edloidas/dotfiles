@@ -39,6 +39,7 @@ export BAT_THEME="Monokai Extended"
 # Claude Code
 export ENABLE_BACKGROUND_TASKS=1
 export CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1
+# export CLAUDE_CODE_NO_FLICKER=1
 
 # Enonic
 export XP_HOME="$HOME/.enonic/xp_home"
@@ -127,4 +128,5 @@ export PATH="$HOME/.opencode/bin:$PATH"
 export PATH="$PATH:$HOME/.cache/lm-studio/bin"
 # End of LM Studio CLI section
 
-
+# Vite+ bin (https://viteplus.dev)
+. "$HOME/.vite-plus/env"
