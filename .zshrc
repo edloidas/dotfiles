@@ -95,13 +95,32 @@ gfz() {
 
 # === Aliases ===
 
+alias c="claude"
 alias rename="rename.sh"
-alias grd="gradle build deploy -x check -Penv=dev --warning-mode none"
+alias grd="./gradlew deploy -x check -x test --warning-mode none -Penv=dev"
 alias grp="gradle build deploy -x check -Penv=prod --warning-mode none"
 alias grb="gradle build -x check -Penv=dev --warning-mode none"
 alias lzd="lazydocker"
 alias pnpx="pnpm dlx"
 alias reload="exec $SHELL"
+
+# Install dependencies in every subfolder with package.json (detects pm from lock file)
+iall() {
+  find . -maxdepth 4 -name "package.json" \
+    -not -path "*/node_modules/*" \
+    -not -path "*/.*/*" \
+    -exec sh -c '
+      dir=$(dirname "$1")
+      if [ -f "$dir/pnpm-lock.yaml" ]; then cmd="pnpm"
+      elif [ -f "$dir/bun.lockb" ] || [ -f "$dir/bun.lock" ]; then cmd="bun"
+      elif [ -f "$dir/package-lock.json" ]; then cmd="npm"
+      elif [ -f "$dir/yarn.lock" ]; then cmd="yarn"
+      else cmd="pnpm"
+      fi
+      echo "[$cmd install] $dir"
+      (cd "$dir" && $cmd install)
+    ' _ {} \;
+}
 
 # === Shell Enhancements ===
 
