@@ -13,7 +13,7 @@
 	default = simple
 	autoSetupRemote = true
 [core]
-	editor = cursor --wait
+	editor = code --wait
 	autocrlf = input
 	pager = delta
 [interactive]
@@ -193,6 +193,8 @@
 	c = "!f() { git add --all && git commit -m \"$*\"; }; f"
 	# Same as `c`, but with a random commit message
 	yolo = "!f() { MSG=$(curl -s https://whatthecommit.com/index.txt); git add --all && git commit -m \"${MSG:-YOLO}\"; }; f"
+	# Commit staged changes (or all if nothing staged) reusing the last commit's title
+	clast = "!f() { git diff --cached --quiet && git add --all; MSG=$(git log -1 --pretty=%s) && git commit -m \"$MSG\"; }; f"
 	# Update previous commit with staged changes
 	# Supports flags `-a` (stage all files before commit) and `-p` (force push with lease after commit)
 	# gud = commit --amend --no-edit

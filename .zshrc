@@ -32,14 +32,14 @@ source ~/pgm/powerlevel10k/powerlevel10k.zsh-theme
 
 # === Environment Variables ===
 
-export EDITOR='cursor'
+export EDITOR='code'
 
 export BAT_THEME="Monokai Extended"
 
 # Claude Code
 export ENABLE_BACKGROUND_TASKS=1
 export CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1
-# export CLAUDE_CODE_NO_FLICKER=1
+export CLAUDE_CODE_NO_FLICKER=1
 
 # Enonic
 export XP_HOME="$HOME/.enonic/xp_home"
