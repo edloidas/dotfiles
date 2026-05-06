@@ -122,6 +122,11 @@ iall() {
     ' _ {} \;
 }
 
+# Find processes by name pattern (matches against full command line)
+pfind() {
+  ps -o pid=PID,tty=TTY,start=TIME,command=CMD -p "$(pgrep -fd, "$1")" 2>/dev/null
+}
+
 # === Shell Enhancements ===
 
 # Syntax highlighting
