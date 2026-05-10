@@ -1,0 +1,29 @@
+# Global gitignore — patterns that should never be tracked in any repo.
+# Project-specific ignores belong in the project's own .gitignore.
+
+# macOS
+.DS_Store
+._*
+
+# Editor swap/backup files
+*.swp
+*.swo
+*~
+
+# Windows (cross-platform collaboration)
+Thumbs.db
+Desktop.ini
+
+# Node
+node_modules/
+
+# AI tools — personal/local config that must not leak into shared repos
+**/.claude/settings.local.json
+**/.codex/settings.local.json
+**/.agents/settings.local.json
+
+# Browser automation scratch dirs
+**/.playwright-mcp/
+
+# Personal scratch workspace (see CLAUDE.md)
+.tmp/

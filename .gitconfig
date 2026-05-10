@@ -20,6 +20,7 @@
 	editor = code --wait
 	autocrlf = input
 	pager = delta
+	excludesfile = ~/.gitignore_global
 [interactive]
 	# https://github.com/dandavison/delta
 	diffFilter = delta --color-only --dark

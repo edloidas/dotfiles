@@ -5,7 +5,9 @@ Personal dotfiles for macOS.
 ## Contents
 
 - `.gitconfig` — git config with aliases, delta, SSH signing
+- `.gitignore_global` — global gitignore (wired via `core.excludesfile`)
 - `.zshrc` — zsh with Oh My Zsh, Powerlevel10k, aliases, PATH
+- `config/ghostty/config` — Ghostty terminal config
 
 ## Install
 

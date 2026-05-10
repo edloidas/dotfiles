@@ -5,6 +5,7 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 DOTFILES=(
   .gitconfig
+  .gitignore_global
   .zshrc
 )
 
