@@ -4,7 +4,7 @@ font-size = 14
 adjust-cell-height = 20%
 
 # Background Transparency
-background-opacity = 0.8
+background-opacity = 0.9
 
 # Background Blur (1-20)
 background-blur = 8
