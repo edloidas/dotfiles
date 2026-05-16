@@ -34,6 +34,9 @@ source ~/pgm/powerlevel10k/powerlevel10k.zsh-theme
 
 export EDITOR='code'
 
+# Delegate to macOS LaunchServices so tools follow the system default browser
+export BROWSER='/usr/bin/open'
+
 export BAT_THEME="Monokai Extended"
 
 # Claude Code
