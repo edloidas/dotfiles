@@ -32,7 +32,7 @@ source ~/pgm/powerlevel10k/powerlevel10k.zsh-theme
 
 # === Environment Variables ===
 
-export EDITOR='code'
+export EDITOR='zed --wait'
 
 # Delegate to macOS LaunchServices so tools follow the system default browser
 export BROWSER='/usr/bin/open'

@@ -17,7 +17,7 @@
 	default = simple
 	autoSetupRemote = true
 [core]
-	editor = code --wait
+	editor = zed --wait
 	autocrlf = input
 	pager = delta
 	excludesfile = ~/.gitignore_global
