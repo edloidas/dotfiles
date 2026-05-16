@@ -176,6 +176,23 @@
 	stashes = stash list
 	# Apply and throw away the latest stash
 	unstash = stash pop
+	# Short stash forms with optional named message (quoted): git st "WIP feature"
+	# st is an alias of st1 (plain stash)
+	st = st1
+	# Stash only unstaged (keep-index), with optional message
+	st0 = "!f() { if [ -n \"$1\" ]; then git stash push --keep-index -m \"$1\"; else git stash --keep-index; fi; }; f"
+	# Stash tracked (default), with optional message
+	st1 = "!f() { if [ -n \"$1\" ]; then git stash push -m \"$1\"; else git stash; fi; }; f"
+	# Stash tracked + untracked, with optional message
+	st2 = "!f() { if [ -n \"$1\" ]; then git stash push -u -m \"$1\"; else git stash -u; fi; }; f"
+	# Stash tracked + untracked + ignored, with optional message
+	st3 = "!f() { if [ -n \"$1\" ]; then git stash push -a -m \"$1\"; else git stash -a; fi; }; f"
+	# Apply a stash by index (default 0): git sta 2 -> git stash apply stash@{2}
+	sta = "!f() { N=${1:-0}; git stash apply \"stash@{$N}\"; }; f"
+	# Pop a stash by index (default 0)
+	stp = "!f() { N=${1:-0}; git stash pop \"stash@{$N}\"; }; f"
+	# Drop a stash by index (default 0)
+	std = "!f() { N=${1:-0}; git stash drop \"stash@{$N}\"; }; f"
 	# Find the commits that were introduced by a merge
 	merge-log = "!git lol $(git merge-span .. $1)"
 	# Show the changes that were introduced by a merge
