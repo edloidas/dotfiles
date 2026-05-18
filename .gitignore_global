@@ -22,6 +22,9 @@ node_modules/
 **/.codex/settings.local.json
 **/.agents/settings.local.json
 
+# Zed editor — personal/local project config
+**/.zed/
+
 # Browser automation scratch dirs
 **/.playwright-mcp/
 
