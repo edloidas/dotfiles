@@ -21,6 +21,7 @@ node_modules/
 **/.claude/settings.local.json
 **/.codex/settings.local.json
 **/.agents/settings.local.json
+**/.claude/worktrees/
 
 # Zed editor — personal/local project config
 **/.zed/

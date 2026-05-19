@@ -64,6 +64,9 @@ export PNPM_HOME="$HOME/Library/pnpm"
 # bun
 export BUN_INSTALL="$HOME/.bun"
 
+# Rust
+export CARGO_HOME="$HOME/.cargo"
+
 # Google Cloud
 export GOOGLE_CLOUD_PROJECT="playground-186616"
 
@@ -74,6 +77,7 @@ typeset -U PATH  # Ensure unique entries only
 path=(
   "$PNPM_HOME"
   "$BUN_INSTALL/bin"
+  "$CARGO_HOME/bin"
   "$JAVA_HOME/bin"
   "$GOPATH/bin"
   "/opt/homebrew/opt/gradle/bin"
