@@ -29,5 +29,8 @@ node_modules/
 # Browser automation scratch dirs
 **/.playwright-mcp/
 
+# GitHub Actions debug artifacts (gh-actions-debug skill)
+**/.gh-actions/
+
 # Personal scratch workspace (see CLAUDE.md)
 .tmp/
