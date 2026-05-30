@@ -1,0 +1,137 @@
+// Zed settings — REFERENCE COPY (not symlinked by install.sh).
+//
+// Zed does not support symlinked settings: linking ~/.config/zed/settings.json
+// to a dotfiles copy breaks because Zed writes settings via an atomic replace
+// (theme selector, UI toggles, reset), which deletes the symlink and drops a
+// plain file in its place — silently detaching it. JSON schema autocomplete
+// also breaks for symlinked settings. See zed-industries/zed#4469 and #20394
+// (closed as not planned). So this file is kept as a manual reference only:
+// copy values over by hand. The context7_api_key is redacted.
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run `zed: open default settings` from the
+// command palette (cmd-shift-p / ctrl-shift-p)
+{
+  "outline_panel": {
+    "dock": "left"
+  },
+  "collaboration_panel": {
+    "dock": "left"
+  },
+  "git_panel": {
+    "dock": "left"
+  },
+  "agent_servers": {
+    "claude-acp": {
+      "type": "registry"
+    }
+  },
+  "context_servers": {
+    "mcp-server-context7": {
+      "enabled": true,
+      "remote": false,
+      "settings": {
+        "context7_api_key": "<YOUR_CONTEXT7_API_KEY>"
+      }
+    }
+  },
+  "use_smartcase_search": true,
+  "edit_predictions": {
+    "provider": "copilot"
+  },
+  "agent": {
+    "dock": "right",
+    "default_model": {
+      "provider": "copilot_chat",
+      "model": "gpt-5.5"
+    },
+    "model_parameters": []
+  },
+  "icon_theme": "Catppuccin Macchiato",
+  "vim_mode": false,
+  "ui_font_size": 16,
+  "buffer_font_size": 15,
+  "buffer_font_family": "Fira Code",
+  "buffer_font_features": {
+    "liga": true,
+    "calt": true,
+  },
+  "theme": {
+    "mode": "dark",
+    "light": "Tomorrow",
+    "dark": "Tomorrow Night",
+  },
+  "tab_size": 2,
+  "show_whitespaces": "boundary",
+  "format_on_save": "off",
+  "remove_trailing_whitespace_on_save": true,
+  "autosave": "on_focus_change",
+  "linked_edits": true,
+  "prettier": {
+    "allowed": true,
+    "printWidth": 120,
+    "singleQuote": true,
+    "arrowParens": "avoid",
+    "bracketSpacing": false,
+    "jsxSingleQuote": false,
+  },
+  "languages": {
+    "JavaScript": { "format_on_save": "on" },
+    "TypeScript": { "format_on_save": "on" },
+    "TSX": { "format_on_save": "on" },
+    "Go": { "format_on_save": "on" },
+    "Zig": { "format_on_save": "on" },
+    "HTML": { "format_on_save": "on" },
+    "CSS": { "format_on_save": "on" },
+  },
+  "project_panel": {
+    "dock": "left",
+    "indent_size": 20,
+    "auto_fold_dirs": true,
+  },
+  "terminal": {
+    "font_family": "FiraCode Nerd Font Mono",
+    "font_size": 14,
+    "line_height": "comfortable",
+  },
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/.svn",
+    "**/.hg",
+    "**/CVS",
+    "**/.DS_Store",
+    "**/node_modules",
+    "**/.idea",
+    "**/.gradle",
+    "**/.eslintcache",
+  ],
+  "experimental.theme_overrides": {
+    "editor.invisible": "#555555",
+    // Color the `comment` extension's keyword groups (HACK, !, ?, * ...).
+    // Requires the "comment" extension installed; these only color tokens it emits.
+    "syntax": {
+      // ! / ERROR / FIXME / BUG ...
+      "property.comment.error": {
+        "color": "#f7768e",
+        "font_weight": 600,
+      },
+      // HACK / WARNING / IMPORTANT / # ...
+      "keyword.comment.warn": {
+        "color": "#ff9e64",
+        "font_weight": 600,
+      },
+      // ? / TODO / WIP / MAYBE ...
+      "constant.comment.todo": {
+        "color": "#7aa2f7",
+      },
+      // * / NOTE / INFO / DOCS ...
+      "string.comment.info": {
+        "color": "#9ece6a",
+        "font_style": "italic",
+      },
+    },
+  },
+}
