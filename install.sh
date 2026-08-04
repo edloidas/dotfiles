@@ -11,6 +11,7 @@ DOTFILES=(
 
 CONFIGS=(
   config/ghostty/config
+  config/tmux/tmux.conf
 )
 
 link() {

@@ -8,6 +8,7 @@ Personal dotfiles for macOS.
 - `.gitignore_global` — global gitignore (wired via `core.excludesfile`)
 - `.zshrc` — zsh with Oh My Zsh, Powerlevel10k, aliases, PATH
 - `config/ghostty/config` — Ghostty terminal config
+- `config/tmux/tmux.conf` — tmux config with vi keys, Catppuccin theme, TPM plugins
 
 ## Install
 
