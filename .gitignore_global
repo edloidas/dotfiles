@@ -28,6 +28,7 @@ node_modules/
 
 # Browser automation scratch dirs
 **/.playwright-mcp/
+**/.playwright-cli/
 
 # GitHub Actions debug artifacts (gh-actions-debug skill)
 **/.gh-actions/
