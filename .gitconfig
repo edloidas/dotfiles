@@ -54,7 +54,7 @@
 	# Given a merge commit, find the span of commits that exist(ed) on that branch
 	merge-span = "!f() { PARENTS=$(git log -1 $2 --merges --pretty=format:%P); echo $(echo $PARENTS | cut -d' ' -f1)$1$(echo $PARENTS | cut -d' ' -f2); }; f"
 	# Show aliases with name highlight
-	aliases = "!f() { git config --list | grep --color 'alias\\.[a-zA-Z0-9]\\{1,\\}='; }; f"
+	aliases = "!f() { git config --list | grep --color 'alias\\.[a-zA-Z0-9-]\\{1,\\}='; }; f"
 	# Show tags
 	tags = tag -l
 	# Show tags pointing at the current commit
@@ -278,6 +278,15 @@
 	origin = "!f() { git remote get-url origin 2>/dev/null | sed -E -e 's#\\.git$##' -e 's#.*/##'; }; f"
 	# Replace the origin remote name (both fetch and push) with new value
 	rename = "!f() { if [[ -z $1 ]]; then echo 'Error: new name required' >&2; return 1; fi; URL=$(git remote get-url origin); BASE=\"${URL%/*}\"; OLD=\"${URL##*/}\"; SUFFIX=''; case \"$OLD\" in *.git) SUFFIX='.git' ;; esac; NEWURL=\"${BASE}/$1${SUFFIX}\"; git remote set-url origin \"$NEWURL\"; git remote set-url --push origin \"$NEWURL\"; git remote -v; }; f"
+	# Show the "upstream" remote, or add/replace it: git set-upstream <owner>/<repo>|<url>
+	# A bare <owner>/<repo> is expanded to the GitHub SSH URL
+	set-upstream = "!f() { if [[ -z $1 ]]; then git remote get-url upstream 2>/dev/null || { echo 'Error: no upstream remote. Usage: git set-upstream <owner>/<repo>' >&2; return 1; }; return 0; fi; case \"$1\" in *://*|*@*:*) URL=\"$1\" ;; */*/*|/*|~*|.*) if [[ -d $1 ]]; then URL=\"$1\"; else echo 'Error: expected <owner>/<repo> or a remote URL' >&2; return 1; fi ;; */*) if [[ -d $1 ]]; then URL=\"$1\"; else URL=\"git@github.com:${1%.git}.git\"; fi ;; *) echo 'Error: expected <owner>/<repo> or a remote URL' >&2; return 1 ;; esac; git remote add upstream \"$URL\" 2>/dev/null || git remote set-url upstream \"$URL\"; git remote get-url upstream; }; f"
+	# Sync a fork: fast-forward the default branch (or the given one) from the
+	# "upstream" remote, push it to "origin", and return to the original branch.
+	# Refuses to run on a dirty tree or when the branch has diverged from upstream.
+	sync-fork = "!f() { if ! git remote get-url upstream >/dev/null 2>&1; then echo 'Error: no upstream remote. Add one with: git set-upstream <owner>/<repo>' >&2; return 1; fi; PREV=$(git branch-name); if [[ $PREV == HEAD ]]; then echo 'Error: cannot sync in detached HEAD state' >&2; return 1; fi; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'Error: working tree not clean, commit or stash changes first' >&2; return 1; fi; BRANCH=${1:-$(git default-branch)}; git fetch upstream || return 1; git checkout \"$BRANCH\" || return 1; if ! git merge --ff-only \"upstream/$BRANCH\"; then echo \"Error: '$BRANCH' has diverged from 'upstream/$BRANCH' and can't be fast-forwarded\" >&2; git checkout \"$PREV\"; return 1; fi; git push origin \"$BRANCH\" || { git checkout \"$PREV\"; return 1; }; [[ $PREV == \"$BRANCH\" ]] || git checkout \"$PREV\"; }; f"
+	# Shortened `git sync-fork`
+	sup = "!f() { git sync-fork \"$@\"; }; f"
 
 	#
 	# Workflow
