@@ -134,6 +134,16 @@ pfind() {
   ps -o pid=PID,tty=TTY,start=TIME,command=CMD -p "$(pgrep -fd, "$1")" 2>/dev/null
 }
 
+# === Multiline Input ===
+
+# ZLE binds both ^J and ^M to accept-line, and Shift+Enter to nothing at all.
+# This widget inserts a literal newline instead of submitting the buffer.
+_insert-newline() { LBUFFER+=$'\n' }
+zle -N _insert-newline
+bindkey '^[[13;2u'    _insert-newline   # Shift+Enter, csi-u
+bindkey '^[[27;2;13~' _insert-newline   # Shift+Enter, xterm modifyOtherKeys
+bindkey '^J'          _insert-newline   # Ctrl+J; ^M still submits
+
 # === Shell Enhancements ===
 
 # Syntax highlighting
