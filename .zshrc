@@ -103,6 +103,8 @@ gfz() {
 # === Aliases ===
 
 alias c="claude"
+alias cx="codex"
+alias p="pi"
 alias rename="rename.sh"
 alias grd="./gradlew deploy -x check -x test --warning-mode none -Penv=dev"
 alias grp="gradle build deploy -x check -Penv=prod --warning-mode none"
