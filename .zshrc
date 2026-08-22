@@ -39,6 +39,9 @@ export BROWSER='/usr/bin/open'
 
 export BAT_THEME="Monokai Extended"
 
+# fff: skip indexing $HOME
+export FFF_ENABLE_HOME_SCAN=0
+
 # Claude Code
 export ENABLE_BACKGROUND_TASKS=1
 export CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1
