@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# op-sa — run the 1Password CLI as this machine's service account.
+#
+#   op-sa vault list
+#   op-sa item list --vault <vault>
+#   op-sa run --env-file=path -- cmd        (see also: with-secrets)
+#
+# "sa" is service account: the distinguishing fact is how it authenticates, not
+# what it fetches. Only machines that cannot authenticate interactively need it —
+# a laptop with the 1Password desktop app should use plain `op` instead.
+#
+# The token lives in a 0600 file and is loaded for the duration of one command.
+# It is deliberately never exported into an interactive shell, so `env` in a
+# shell or an agent session reveals nothing.
+#
+# This is the single place the token is read. with-secrets calls through here so
+# there is only ever one copy of this logic.
+set -euo pipefail
+
+TOKEN_FILE="${OP_SA_TOKEN_FILE:-$HOME/.config/op-sa/token}"
+
+if [ $# -eq 0 ]; then
+  echo "usage: op-sa <op arguments...>" >&2
+  exit 2
+fi
+
+if [ ! -r "$TOKEN_FILE" ]; then
+  echo "op-sa: no service account token at $TOKEN_FILE" >&2
+  echo "  Create it yourself — never paste the token into an agent session:" >&2
+  echo "  printf 'OP_SERVICE_ACCOUNT_TOKEN=%s\\n' 'ops_...' > $TOKEN_FILE" >&2
+  echo "  chmod 600 $TOKEN_FILE" >&2
+  exit 3
+fi
+
+# Parsed, never sourced, so the file cannot execute anything.
+token="$(sed -n 's/^[[:space:]]*OP_SERVICE_ACCOUNT_TOKEN=//p' "$TOKEN_FILE" | head -n 1)"
+token="${token%\"}"; token="${token#\"}"
+token="${token%\'}"; token="${token#\'}"
+if [ -z "$token" ]; then
+  echo "op-sa: $TOKEN_FILE has no OP_SERVICE_ACCOUNT_TOKEN= line" >&2
+  exit 3
+fi
+
+OP_SERVICE_ACCOUNT_TOKEN="$token" exec op "$@"

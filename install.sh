@@ -14,6 +14,12 @@ CONFIGS=(
   config/tmux/tmux.conf
 )
 
+# Linked into ~/.local/bin, which is already on PATH from .zshrc.
+BINS=(
+  bin/op-sa
+  bin/with-secrets
+)
+
 link() {
   local src="$DOTFILES_DIR/$1"
   local dst="$HOME/$2"
@@ -39,6 +45,11 @@ done
 
 for cfg in "${CONFIGS[@]}"; do
   link "$cfg" ".$cfg"
+done
+
+for b in "${BINS[@]}"; do
+  chmod +x "$DOTFILES_DIR/$b"
+  link "$b" ".local/$b"
 done
 
 echo "Done."
