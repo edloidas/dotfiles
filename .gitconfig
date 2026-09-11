@@ -107,7 +107,7 @@
 	# Force delete branch
 	del = branch -D
 	# Remove all branches, started with provided pattern
-	dela = "!f() { if [[ -z $1 ]]; then echo 'Error: pattern required' >&2; return 1; fi; git branch | grep -v '^\\*' | grep -E \"^\\s*${1}\" | sed 's/^\\s*//' | xargs -I {} git branch -D {}; }; f"
+	dela = "!f() { if [ -z \"$1\" ]; then echo 'Error: pattern required' >&2; return 1; fi; git branch | grep -v '^\\*' | grep -E \"^\\s*${1}\" | sed 's/^\\s*//' | xargs -I {} git branch -D {}; }; f"
 	# Shortened `git branch`
 	b = branch
 	# Shortened `git push`
@@ -119,7 +119,7 @@
 	# Shortened `git pull --rebase`
 	plr = pull --rebase
 	# Pull and override local changes with remote (force)
-	plf = "!f() { BRANCH=$(git branch-name); if [[ $BRANCH == HEAD ]]; then echo 'Error: cannot force pull in detached HEAD state' >&2; return 1; fi; git fetch origin && git reset --hard \"origin/$BRANCH\"; }; f"
+	plf = "!f() { BRANCH=$(git branch-name); if [ \"$BRANCH\" = HEAD ]; then echo 'Error: cannot force pull in detached HEAD state' >&2; return 1; fi; git fetch origin && git reset --hard \"origin/$BRANCH\"; }; f"
 	# Shortened `git rebase`
 	r = rebase
 	# Rebase onto default branch
@@ -148,13 +148,13 @@
 	# nobody has updated the branch upstream
 	please = push --force-with-lease
 	# Create new branch from the current, switch to it and publish
-	create = "!f() { [[ -n $1 ]] && git checkout -b \"$1\" && git publish; }; f"
+	create = "!f() { [ -n \"$1\" ] && git checkout -b \"$1\" && git publish; }; f"
 	# Delete a branch and recreate it from master — useful if you have, dev
 	# and a master branch and they could conceivably go out of sync
-	recreate = "!f() { if [[ -z $1 ]]; then return 1; fi; git checkout \"$1\" && git unpublish && git checkout \"$(git default-branch)\" && git branch -D \"$1\" && git checkout -b \"$1\" && git publish; }; f"
+	recreate = "!f() { if [ -z \"$1\" ]; then return 1; fi; git checkout \"$1\" && git unpublish && git checkout \"$(git default-branch)\" && git branch -D \"$1\" && git checkout -b \"$1\" && git publish; }; f"
 	# Checkout another branch (master by default) and remove the branch
 	# you was previously on. Can't remove master or the current branch.
-	return = "!f() { PREV=$(git branch-name); DEFAULT=$(git default-branch); CURR=${1:-\"$DEFAULT\"}; if [[ $PREV == main || $PREV == master ]]; then echo \"Can't remove default branch '$PREV'.\"; elif [[ $PREV == \"$CURR\" ]]; then echo \"Already on '$PREV'.\"; else git checkout \"$CURR\" && git del \"$PREV\"; fi; }; f"
+	return = "!f() { PREV=$(git branch-name); DEFAULT=$(git default-branch); CURR=${1:-\"$DEFAULT\"}; if [ \"$PREV\" = main ] || [ \"$PREV\" = master ]; then echo \"Can't remove default branch '$PREV'.\"; elif [ \"$PREV\" = \"$CURR\" ]; then echo \"Already on '$PREV'.\"; else git checkout \"$CURR\" && git del \"$PREV\"; fi; }; f"
 	# Update and rebase previous commits. First argument is the number of commits (2 by default)
 	rework = "!f() { COUNT=${1:-\"2\"} && git rebase -i HEAD~$COUNT; }; f"
 	# Interactively rebase all the commits on the current branch
@@ -163,7 +163,7 @@
 	squash = "!f() { N=${1:-1}; SHA=$(git rev-parse HEAD~$N) && git reset --soft HEAD~$((N+1)) && git commit -C \"$SHA\"; }; f"
 	# Cherry-pick last N commits (default 1) onto a new base after history rewrite
 	# Usage: git repick <base> [count]
-	repick = "!f() { if [[ -z $1 ]]; then echo 'Usage: git repick <base> [count]' >&2; return 1; fi; BASE=\"$1\"; COUNT=${2:-1}; BRANCH=$(git branch-name); if [[ $BRANCH == HEAD ]]; then echo 'Error: detached HEAD' >&2; return 1; fi; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'Error: working tree not clean, commit or stash changes first' >&2; return 1; fi; COMMITS=$(git log --reverse --format=%H -n \"$COUNT\" HEAD); if [[ -z $COMMITS ]]; then echo 'Error: no commits found' >&2; return 1; fi; BKP=\"${BRANCH}_repick_$(date +%Y%m%d-%H%M%S)\"; git branch \"$BKP\" || return 1; git reset --hard \"$BASE\" || { echo \"Error: reset to '$BASE' failed. Backup at '$BKP'.\" >&2; return 1; }; if git cherry-pick $COMMITS; then git branch -D \"$BKP\"; echo \"Repicked $COUNT commit(s) onto $BASE. Backup removed.\"; else echo \"Cherry-pick failed. Backup at '$BKP'. To recover: git cherry-pick --abort && git reset --hard $BKP\" >&2; return 1; fi; }; f"
+	repick = "!f() { if [ -z \"$1\" ]; then echo 'Usage: git repick <base> [count]' >&2; return 1; fi; BASE=\"$1\"; COUNT=${2:-1}; BRANCH=$(git branch-name); if [ \"$BRANCH\" = HEAD ]; then echo 'Error: detached HEAD' >&2; return 1; fi; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'Error: working tree not clean, commit or stash changes first' >&2; return 1; fi; COMMITS=$(git log --reverse --format=%H -n \"$COUNT\" HEAD); if [ -z \"$COMMITS\" ]; then echo 'Error: no commits found' >&2; return 1; fi; BKP=\"${BRANCH}_repick_$(date +%Y%m%d-%H%M%S)\"; git branch \"$BKP\" || return 1; git reset --hard \"$BASE\" || { echo \"Error: reset to '$BASE' failed. Backup at '$BKP'.\" >&2; return 1; }; if git cherry-pick $COMMITS; then git branch -D \"$BKP\"; echo \"Repicked $COUNT commit(s) onto $BASE. Backup removed.\"; else echo \"Cherry-pick failed. Backup at '$BKP'. To recover: git cherry-pick --abort && git reset --hard $BKP\" >&2; return 1; fi; }; f"
 	# Stash only unstaged changes to tracked files
 	stash0 = stash --keep-index
 	# Stash tracked files (default)
@@ -222,7 +222,7 @@
 	# gud = commit --amend --no-edit
 	# gud = "!f() { git add --all && git commit --amend --no-edit; }; f"
 	# gud = "!f() { while test $# -gt 0; do case "$1" in -A|--all) git add -A && git commit --amend --no-edit; exit 0;; *) shift;; esac; done; git commit --amend --no-edit; }; f"
-	gud = "!f() { while getopts 'ap' flag; do case \"${flag}\" in a) a_flag='true' ;; p) p_flag='true' ;; esac; done; if [[ -n $a_flag ]]; then git a; fi; git commit --amend --no-edit; if [[ -n $p_flag ]]; then git please; fi; }; f"
+	gud = "!f() { while getopts 'ap' flag; do case \"${flag}\" in a) a_flag='true' ;; p) p_flag='true' ;; esac; done; if [ -n \"$a_flag\" ]; then git a; fi; git commit --amend --no-edit; if [ -n \"$p_flag\" ]; then git please; fi; }; f"
 	# Same as `gud`, but also edit the commit message
 	commend = commit --amend
 	# Unstage any files that have been added to the staging area
@@ -246,11 +246,11 @@
 	# Resets the index and working tree.
 	# Any changes to tracked files in the working tree since HEAD commit are discarded.
 	# Uses HEAD commit by default, or HEAD~${NUMBER} if number is passed.
-	die = "!f() { re='^[0-9]+$'; if [[ $1 =~ $re ]]; then COMMIT=HEAD~$1; else COMMIT=HEAD; fi; git reset --hard $COMMIT; }; f"
+	die = "!f() { case \"$1\" in ''|*[!0-9]*) COMMIT=HEAD ;; *) COMMIT=HEAD~$1 ;; esac; git reset --hard $COMMIT; }; f"
 	# Resets the index and working tree.
 	# Keeps changes.
 	# Uses HEAD~1 commit by default, or HEAD~${NUMBER} if number is passed.
-	res = "!f() { re='^[0-9]+$'; if [[ $1 =~ $re ]]; then COMMIT=HEAD~$1; else COMMIT=HEAD~1; fi; git reset $COMMIT; }; f"
+	res = "!f() { case \"$1\" in ''|*[!0-9]*) COMMIT=HEAD~1 ;; *) COMMIT=HEAD~$1 ;; esac; git reset $COMMIT; }; f"
 
 	#
 	# Plumbing Commands
@@ -277,14 +277,14 @@
 	# origin = "!f() { echo `git remote get-url origin` | grep -oP '(?<=.)[^/]+(?=\\.git)'; }; f"
 	origin = "!f() { git remote get-url origin 2>/dev/null | sed -E -e 's#\\.git$##' -e 's#.*/##'; }; f"
 	# Replace the origin remote name (both fetch and push) with new value
-	rename = "!f() { if [[ -z $1 ]]; then echo 'Error: new name required' >&2; return 1; fi; URL=$(git remote get-url origin); BASE=\"${URL%/*}\"; OLD=\"${URL##*/}\"; SUFFIX=''; case \"$OLD\" in *.git) SUFFIX='.git' ;; esac; NEWURL=\"${BASE}/$1${SUFFIX}\"; git remote set-url origin \"$NEWURL\"; git remote set-url --push origin \"$NEWURL\"; git remote -v; }; f"
+	rename = "!f() { if [ -z \"$1\" ]; then echo 'Error: new name required' >&2; return 1; fi; URL=$(git remote get-url origin); BASE=\"${URL%/*}\"; OLD=\"${URL##*/}\"; SUFFIX=''; case \"$OLD\" in *.git) SUFFIX='.git' ;; esac; NEWURL=\"${BASE}/$1${SUFFIX}\"; git remote set-url origin \"$NEWURL\"; git remote set-url --push origin \"$NEWURL\"; git remote -v; }; f"
 	# Show the "upstream" remote, or add/replace it: git set-upstream <owner>/<repo>|<url>
 	# A bare <owner>/<repo> is expanded to the GitHub SSH URL
-	set-upstream = "!f() { if [[ -z $1 ]]; then git remote get-url upstream 2>/dev/null || { echo 'Error: no upstream remote. Usage: git set-upstream <owner>/<repo>' >&2; return 1; }; return 0; fi; case \"$1\" in *://*|*@*:*) URL=\"$1\" ;; */*/*|/*|~*|.*) if [[ -d $1 ]]; then URL=\"$1\"; else echo 'Error: expected <owner>/<repo> or a remote URL' >&2; return 1; fi ;; */*) if [[ -d $1 ]]; then URL=\"$1\"; else URL=\"git@github.com:${1%.git}.git\"; fi ;; *) echo 'Error: expected <owner>/<repo> or a remote URL' >&2; return 1 ;; esac; git remote add upstream \"$URL\" 2>/dev/null || git remote set-url upstream \"$URL\"; git remote get-url upstream; }; f"
+	set-upstream = "!f() { if [ -z \"$1\" ]; then git remote get-url upstream 2>/dev/null || { echo 'Error: no upstream remote. Usage: git set-upstream <owner>/<repo>' >&2; return 1; }; return 0; fi; case \"$1\" in *://*|*@*:*) URL=\"$1\" ;; */*/*|/*|~*|.*) if [ -d \"$1\" ]; then URL=\"$1\"; else echo 'Error: expected <owner>/<repo> or a remote URL' >&2; return 1; fi ;; */*) if [ -d \"$1\" ]; then URL=\"$1\"; else URL=\"git@github.com:${1%.git}.git\"; fi ;; *) echo 'Error: expected <owner>/<repo> or a remote URL' >&2; return 1 ;; esac; git remote add upstream \"$URL\" 2>/dev/null || git remote set-url upstream \"$URL\"; git remote get-url upstream; }; f"
 	# Sync a fork: fast-forward the default branch (or the given one) from the
 	# "upstream" remote, push it to "origin", and return to the original branch.
 	# Refuses to run on a dirty tree or when the branch has diverged from upstream.
-	sync-fork = "!f() { if ! git remote get-url upstream >/dev/null 2>&1; then echo 'Error: no upstream remote. Add one with: git set-upstream <owner>/<repo>' >&2; return 1; fi; PREV=$(git branch-name); if [[ $PREV == HEAD ]]; then echo 'Error: cannot sync in detached HEAD state' >&2; return 1; fi; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'Error: working tree not clean, commit or stash changes first' >&2; return 1; fi; BRANCH=${1:-$(git default-branch)}; git fetch upstream || return 1; git checkout \"$BRANCH\" || return 1; if ! git merge --ff-only \"upstream/$BRANCH\"; then echo \"Error: '$BRANCH' has diverged from 'upstream/$BRANCH' and can't be fast-forwarded\" >&2; git checkout \"$PREV\"; return 1; fi; git push origin \"$BRANCH\" || { git checkout \"$PREV\"; return 1; }; [[ $PREV == \"$BRANCH\" ]] || git checkout \"$PREV\"; }; f"
+	sync-fork = "!f() { if ! git remote get-url upstream >/dev/null 2>&1; then echo 'Error: no upstream remote. Add one with: git set-upstream <owner>/<repo>' >&2; return 1; fi; PREV=$(git branch-name); if [ \"$PREV\" = HEAD ]; then echo 'Error: cannot sync in detached HEAD state' >&2; return 1; fi; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'Error: working tree not clean, commit or stash changes first' >&2; return 1; fi; BRANCH=${1:-$(git default-branch)}; git fetch upstream || return 1; git checkout \"$BRANCH\" || return 1; if ! git merge --ff-only \"upstream/$BRANCH\"; then echo \"Error: '$BRANCH' has diverged from 'upstream/$BRANCH' and can't be fast-forwarded\" >&2; git checkout \"$PREV\"; return 1; fi; git push origin \"$BRANCH\" || { git checkout \"$PREV\"; return 1; }; [ \"$PREV\" = \"$BRANCH\" ] || git checkout \"$PREV\"; }; f"
 	# Shortened `git sync-fork`
 	sup = "!f() { git sync-fork \"$@\"; }; f"
 
