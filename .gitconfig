@@ -90,7 +90,7 @@
 	today = "!git log --author=$(git author) --oneline --no-merges --format='%C(Yellow)%h%Creset %C(Cyan)[%ad]%Creset %s' --date=relative --since=1am"
 	# Same as `git today` (equivalent is `git daysago 0`) but for a specific day
 	# (1 day ago by default) from current day.
-	daysago = "!f() { COUNT=${1:-\"1\"} && git recap --until=$COUNT.day --since=$((++COUNT)).day; }; f"
+	daysago = "!f() { COUNT=${1:-1}; git recap --until=$COUNT.day --since=$((COUNT+1)).day; }; f"
 
 	#
 	# Branching and Merging
@@ -107,7 +107,7 @@
 	# Force delete branch
 	del = branch -D
 	# Remove all branches, started with provided pattern
-	dela = "!f() { if [ -z \"$1\" ]; then echo 'Error: pattern required' >&2; return 1; fi; git branch | grep -v '^\\*' | grep -E \"^\\s*${1}\" | sed 's/^\\s*//' | xargs -I {} git branch -D {}; }; f"
+	dela = "!f() { if [ -z \"$1\" ]; then echo 'Error: pattern required' >&2; return 1; fi; git branch | grep -v '^\\*' | grep -E \"^[[:space:]]*${1}\" | sed 's/^[[:space:]]*//' | xargs -I {} git branch -D {}; }; f"
 	# Shortened `git branch`
 	b = branch
 	# Shortened `git push`
@@ -194,9 +194,9 @@
 	# Drop a stash by index (default 0)
 	std = "!f() { N=${1:-0}; git stash drop \"stash@{$N}\"; }; f"
 	# Find the commits that were introduced by a merge
-	merge-log = "!git lol $(git merge-span .. $1)"
+	merge-log = "!f() { git lol $(git merge-span .. \"$1\"); }; f"
 	# Show the changes that were introduced by a merge
-	merge-diff = "!git diff $(git merge-span ... $1)"
+	merge-diff = "!f() { git diff $(git merge-span ... \"$1\"); }; f"
 	# Updates fetch command to accept refs from * (all) branches, not only from master
 	# (or any other branch used with `--single-branch`) and fetches unshallow copy of the repo
 	unshallow = "!git remote set-branches origin '*' && git fetch --unshallow --verbose"
