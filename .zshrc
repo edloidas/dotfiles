@@ -34,6 +34,9 @@ source ~/pgm/powerlevel10k/powerlevel10k.zsh-theme
 
 export EDITOR='zed --wait'
 
+# ZLE picks the vi keymap if EDITOR ever contains "vi"; keep emacs-style line editing.
+bindkey -e
+
 # Delegate to macOS LaunchServices so tools follow the system default browser
 export BROWSER='/usr/bin/open'
 
