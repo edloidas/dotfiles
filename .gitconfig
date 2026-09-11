@@ -107,7 +107,7 @@
 	# Force delete branch
 	del = branch -D
 	# Remove all branches, started with provided pattern
-	dela = "!f() { if [ -z \"$1\" ]; then echo 'Error: pattern required' >&2; return 1; fi; git branch | grep -v '^\\*' | grep -E \"^[[:space:]]*${1}\" | sed 's/^[[:space:]]*//' | xargs -I {} git branch -D {}; }; f"
+	dela = "!f() { if [ -z \"$1\" ]; then echo 'Error: pattern required' >&2; return 1; fi; git branch | grep -v '^\\*' | sed 's/^[[:space:]]*//' | grep -E \"^${1}\" | while read -r BRANCH; do git branch -D \"$BRANCH\"; done; }; f"
 	# Shortened `git branch`
 	b = branch
 	# Shortened `git push`
@@ -154,7 +154,7 @@
 	recreate = "!f() { if [ -z \"$1\" ]; then return 1; fi; git checkout \"$1\" && git unpublish && git checkout \"$(git default-branch)\" && git branch -D \"$1\" && git checkout -b \"$1\" && git publish; }; f"
 	# Checkout another branch (master by default) and remove the branch
 	# you was previously on. Can't remove master or the current branch.
-	return = "!f() { PREV=$(git branch-name); DEFAULT=$(git default-branch); CURR=${1:-\"$DEFAULT\"}; if [ \"$PREV\" = main ] || [ \"$PREV\" = master ]; then echo \"Can't remove default branch '$PREV'.\"; elif [ \"$PREV\" = \"$CURR\" ]; then echo \"Already on '$PREV'.\"; else git checkout \"$CURR\" && git del \"$PREV\"; fi; }; f"
+	return = "!f() { PREV=$(git branch-name); DEFAULT=$(git default-branch); CURR=${1:-\"$DEFAULT\"}; if [ \"$PREV\" = \"$DEFAULT\" ] || [ \"$PREV\" = main ] || [ \"$PREV\" = master ]; then echo \"Can't remove default branch '$PREV'.\"; elif [ \"$PREV\" = \"$CURR\" ]; then echo \"Already on '$PREV'.\"; else git checkout \"$CURR\" && git del \"$PREV\"; fi; }; f"
 	# Update and rebase previous commits. First argument is the number of commits (2 by default)
 	rework = "!f() { COUNT=${1:-\"2\"} && git rebase -i HEAD~$COUNT; }; f"
 	# Interactively rebase all the commits on the current branch
@@ -194,9 +194,9 @@
 	# Drop a stash by index (default 0)
 	std = "!f() { N=${1:-0}; git stash drop \"stash@{$N}\"; }; f"
 	# Find the commits that were introduced by a merge
-	merge-log = "!f() { git lol $(git merge-span .. \"$1\"); }; f"
+	merge-log = "!f() { REF=\"$1\"; if [ $# -gt 0 ]; then shift; fi; git lol $(git merge-span .. \"$REF\") \"$@\"; }; f"
 	# Show the changes that were introduced by a merge
-	merge-diff = "!f() { git diff $(git merge-span ... \"$1\"); }; f"
+	merge-diff = "!f() { REF=\"$1\"; if [ $# -gt 0 ]; then shift; fi; git diff $(git merge-span ... \"$REF\") \"$@\"; }; f"
 	# Updates fetch command to accept refs from * (all) branches, not only from master
 	# (or any other branch used with `--single-branch`) and fetches unshallow copy of the repo
 	unshallow = "!git remote set-branches origin '*' && git fetch --unshallow --verbose"
@@ -277,7 +277,7 @@
 	# origin = "!f() { echo `git remote get-url origin` | grep -oP '(?<=.)[^/]+(?=\\.git)'; }; f"
 	origin = "!f() { git remote get-url origin 2>/dev/null | sed -E -e 's#\\.git$##' -e 's#.*/##'; }; f"
 	# Replace the origin remote name (both fetch and push) with new value
-	rename = "!f() { if [ -z \"$1\" ]; then echo 'Error: new name required' >&2; return 1; fi; URL=$(git remote get-url origin); BASE=\"${URL%/*}\"; OLD=\"${URL##*/}\"; SUFFIX=''; case \"$OLD\" in *.git) SUFFIX='.git' ;; esac; NEWURL=\"${BASE}/$1${SUFFIX}\"; git remote set-url origin \"$NEWURL\"; git remote set-url --push origin \"$NEWURL\"; git remote -v; }; f"
+	rename = "!f() { if [ -z \"$1\" ]; then echo 'Error: new name required' >&2; return 1; fi; URL=$(git remote get-url origin); BASE=\"${URL%/*}\"; OLD=\"${URL##*/}\"; SUFFIX=''; case \"$OLD\" in *.git) SUFFIX='.git' ;; esac; NEWURL=\"${BASE}/${1%.git}${SUFFIX}\"; git remote set-url origin \"$NEWURL\"; git remote set-url --push origin \"$NEWURL\"; git remote -v; }; f"
 	# Show the "upstream" remote, or add/replace it: git set-upstream <owner>/<repo>|<url>
 	# A bare <owner>/<repo> is expanded to the GitHub SSH URL
 	set-upstream = "!f() { if [ -z \"$1\" ]; then git remote get-url upstream 2>/dev/null || { echo 'Error: no upstream remote. Usage: git set-upstream <owner>/<repo>' >&2; return 1; }; return 0; fi; case \"$1\" in *://*|*@*:*) URL=\"$1\" ;; */*/*|/*|~*|.*) if [ -d \"$1\" ]; then URL=\"$1\"; else echo 'Error: expected <owner>/<repo> or a remote URL' >&2; return 1; fi ;; */*) if [ -d \"$1\" ]; then URL=\"$1\"; else URL=\"git@github.com:${1%.git}.git\"; fi ;; *) echo 'Error: expected <owner>/<repo> or a remote URL' >&2; return 1 ;; esac; git remote add upstream \"$URL\" 2>/dev/null || git remote set-url upstream \"$URL\"; git remote get-url upstream; }; f"
@@ -293,26 +293,26 @@
 	#
 
 	# Create new `issue-*` branch from current and switch to it
-	newi = "!f() { BRANCH=\"issue-$1\" && git checkout -b \"$BRANCH\"; }; f"
+	newi = "!f() { if [ -z \"$1\" ]; then echo 'Error: issue number required' >&2; return 1; fi; BRANCH=\"issue-$1\"; git checkout -b \"$BRANCH\"; }; f"
 	# Remove `issue-*` branch
-	deli = "!f() { BRANCH=\"issue-$1\" && git branch -D \"$BRANCH\"; }; f"
+	deli = "!f() { if [ -z \"$1\" ]; then echo 'Error: issue number required' >&2; return 1; fi; BRANCH=\"issue-$1\"; git branch -D \"$BRANCH\"; }; f"
 	# Switch to `issue-*` branch
-	chi = "!f() { BRANCH=\"issue-$1\" && git checkout \"$BRANCH\"; }; f"
+	chi = "!f() { if [ -z \"$1\" ]; then echo 'Error: issue number required' >&2; return 1; fi; BRANCH=\"issue-$1\"; git checkout \"$BRANCH\"; }; f"
 	# Switch to `epic-*` branch
-	che = "!f() { BRANCH=\"epic-$1\" && git checkout \"$BRANCH\"; }; f"
+	che = "!f() { if [ -z \"$1\" ]; then echo 'Error: epic name required' >&2; return 1; fi; BRANCH=\"epic-$1\"; git checkout \"$BRANCH\"; }; f"
 	# Switch to next branch
 	chn = checkout next
 	# Clone Enonic repo with SSH
-	clonee = "!f() { REPO=\"git@github.com:enonic/$1.git\" && git clone \"$REPO\"; }; f"
+	clonee = "!f() { if [ -z \"$1\" ]; then echo 'Error: repo name required' >&2; return 1; fi; REPO=\"git@github.com:enonic/${1%.git}.git\"; git clone \"$REPO\"; }; f"
 	# Clone Enonic repo with HTTPS
-	cloneeh = "!f() { REPO=\"https://github.com/enonic/$1.git\" && git clone \"$REPO\"; }; f"
+	cloneeh = "!f() { if [ -z \"$1\" ]; then echo 'Error: repo name required' >&2; return 1; fi; REPO=\"https://github.com/enonic/${1%.git}.git\"; git clone \"$REPO\"; }; f"
 	# Create new `issue-*` branch from current, switch to it and publish
-	createi = "!f() { BRANCH=\"issue-$1\" && git checkout -b \"$BRANCH\" && git publish; }; f"
+	createi = "!f() { if [ -z \"$1\" ]; then echo 'Error: issue number required' >&2; return 1; fi; BRANCH=\"issue-$1\"; git checkout -b \"$BRANCH\" && git publish; }; f"
 
 	# Clone edloidas repo with SSH
-	cl = "!f() { REPO=\"git@github.com:edloidas/$1.git\" && git clone \"$REPO\"; }; f"
+	cl = "!f() { if [ -z \"$1\" ]; then echo 'Error: repo name required' >&2; return 1; fi; REPO=\"git@github.com:edloidas/${1%.git}.git\"; git clone \"$REPO\"; }; f"
 	# Clone edloidas repo with HTTPS
-	clh = "!f() { REPO=\"https://github.com/edloidas/$1.git\" && git clone \"$REPO\"; }; f"
+	clh = "!f() { if [ -z \"$1\" ]; then echo 'Error: repo name required' >&2; return 1; fi; REPO=\"https://github.com/edloidas/${1%.git}.git\"; git clone \"$REPO\"; }; f"
 	files = "!f() { REF=\"${1:-HEAD}\"; git ls-tree -r --name-only \"$REF\" | tree --fromfile -C --dirsfirst --noreport; }; f"
 
 [rerere]
