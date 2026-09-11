@@ -1,23 +1,7 @@
-[user]
-	name = Mikita Taukachou
-	email = edloidas@gmail.com
-	signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKuJFvESPW+08kC2OQcTx9GZ1jnSwIKSLK4bFiU9D7f6
-[gpg]
-	format = ssh
-[gpg "ssh"]
-	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
-	allowedSignersFile = ~/.config/git/allowed_signers
-[commit]
-	gpgsign = true
-[tag]
-	gpgsign = true
-	# Promotes bare `git tag <name>` to annotated (-a) and signs it
-	# forceSignAnnotated = true
 [push]
 	default = simple
 	autoSetupRemote = true
 [core]
-	editor = zed --wait
 	autocrlf = input
 	pager = delta
 	excludesfile = ~/.gitignore_global
@@ -325,3 +309,7 @@
 [credential "https://gist.github.com"]
 	helper = 
 	helper = !gh auth git-credential
+
+# Machine-specific overrides: identity, signing, editor, credential helpers.
+[include]
+	path = ~/.gitconfig.local

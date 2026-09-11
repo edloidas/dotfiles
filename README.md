@@ -4,13 +4,40 @@ Personal dotfiles for macOS.
 
 ## Contents
 
-- `.gitconfig` — git config with aliases, delta, SSH signing
+- `.gitconfig` — git config with aliases, delta, credential helpers; includes `~/.gitconfig.local`
 - `.gitignore_global` — global gitignore (wired via `core.excludesfile`)
 - `.zshrc` — zsh with Oh My Zsh, Powerlevel10k, aliases, PATH
 - `config/ghostty/config` — Ghostty terminal config
 - `config/tmux/tmux.conf` — tmux config with vi keys, Catppuccin theme, TPM plugins
 - `bin/with-secrets` — run a command with 1Password references in an env file resolved
 - `bin/op-sa` — run the `op` CLI as a machine's service account
+
+## Machine-specific git settings
+
+`.gitconfig` ends with `[include] path = ~/.gitconfig.local`, so identity,
+signing, editor, and per-host credential helpers live in that untracked file
+and override anything above them. Create it on each machine:
+
+```ini
+[user]
+	name = Your Name
+	email = you@example.com
+	signingkey = ssh-ed25519 AAAA...
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+	allowedSignersFile = ~/.config/git/allowed_signers
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
+[core]
+	editor = zed --wait
+```
+
+Without it, git has no identity and refuses to commit, which is the intended
+failure mode: nothing signs or authors as the wrong account by accident.
 
 ## Secrets
 
