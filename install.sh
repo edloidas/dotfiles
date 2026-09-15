@@ -3,6 +3,18 @@ set -euo pipefail
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Which git/<name>.gitconfig becomes ~/.gitconfig.local. Defaults to edloidas.
+GIT_IDENTITY="${1:-edloidas}"
+GIT_IDENTITY_FILE="git/$GIT_IDENTITY.gitconfig"
+
+if [[ ! -f "$DOTFILES_DIR/$GIT_IDENTITY_FILE" ]]; then
+  echo "Unknown git identity '$GIT_IDENTITY'. Available:" >&2
+  for f in "$DOTFILES_DIR"/git/*.gitconfig; do
+    echo "  $(basename "${f%.gitconfig}")" >&2
+  done
+  exit 1
+fi
+
 DOTFILES=(
   .gitconfig
   .gitignore_global
@@ -51,5 +63,7 @@ for b in "${BINS[@]}"; do
   chmod +x "$DOTFILES_DIR/$b"
   link "$b" ".local/$b"
 done
+
+link "$GIT_IDENTITY_FILE" ".gitconfig.local"
 
 echo "Done."

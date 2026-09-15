@@ -1,0 +1,11 @@
+# Identity for the adiutriel account (Linux). Linked to ~/.gitconfig.local by install.sh.
+# No 1Password on that box, so nothing is signed.
+[user]
+	name = adiutriel
+	email = adiutriel@gmail.com
+[commit]
+	gpgsign = false
+[tag]
+	gpgsign = false
+[core]
+	editor = vim

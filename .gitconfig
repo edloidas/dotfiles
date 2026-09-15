@@ -197,8 +197,6 @@
 	a = add --all
 	# Add all and commit with message
 	c = "!f() { git add --all && git commit -m \"$*\"; }; f"
-	# Same as `c`, but with a random commit message
-	yolo = "!f() { MSG=$(curl -s https://whatthecommit.com/index.txt); git add --all && git commit -m \"${MSG:-YOLO}\"; }; f"
 	# Commit staged changes (or all if nothing staged) reusing the last commit's title
 	clast = "!f() { git diff --cached --quiet && git add --all; MSG=$(git log -1 --pretty=%s) && git commit -m \"$MSG\"; }; f"
 	# Update previous commit with staged changes
@@ -310,6 +308,15 @@
 	helper = 
 	helper = !gh auth git-credential
 
-# Machine-specific overrides: identity, signing, editor, credential helpers.
+# Without an identity from the include below, refuse to commit instead of
+# falling back to <user>@<hostname>.
+[user]
+	useConfigOnly = true
+
+# Account identity, symlinked from git/ by install.sh.
 [include]
 	path = ~/.gitconfig.local
+
+# Untracked per-machine extras (credential helpers, URL rewrites). Skipped if absent.
+[include]
+	path = ~/.gitconfig.machine

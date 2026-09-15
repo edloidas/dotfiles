@@ -5,6 +5,7 @@ Personal dotfiles for macOS.
 ## Contents
 
 - `.gitconfig` — git config with aliases, delta, credential helpers; includes `~/.gitconfig.local`
+- `git/*.gitconfig` — per-account identity and signing, one of them linked as `~/.gitconfig.local`
 - `.gitignore_global` — global gitignore (wired via `core.excludesfile`)
 - `.zshrc` — zsh with Oh My Zsh, Powerlevel10k, aliases, PATH
 - `config/ghostty/config` — Ghostty terminal config
@@ -12,32 +13,30 @@ Personal dotfiles for macOS.
 - `bin/with-secrets` — run a command with 1Password references in an env file resolved
 - `bin/op-sa` — run the `op` CLI as a machine's service account
 
-## Machine-specific git settings
+## Git identity
 
 `.gitconfig` ends with `[include] path = ~/.gitconfig.local`, so identity,
-signing, editor, and per-host credential helpers live in that untracked file
-and override anything above them. Create it on each machine:
+signing, and editor live in that file and override anything above them. The
+candidates are tracked in `git/`:
 
-```ini
-[user]
-	name = Your Name
-	email = you@example.com
-	signingkey = ssh-ed25519 AAAA...
-[gpg]
-	format = ssh
-[gpg "ssh"]
-	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
-	allowedSignersFile = ~/.config/git/allowed_signers
-[commit]
-	gpgsign = true
-[tag]
-	gpgsign = true
-[core]
-	editor = zed --wait
+- `git/edloidas.gitconfig` — main account, macOS, signs with 1Password
+- `git/adiutriel.gitconfig` — secondary account, Linux, unsigned, vim
+
+`install.sh` symlinks one of them to `~/.gitconfig.local`, `edloidas` by
+default:
+
+```sh
+./install.sh            # edloidas
+./install.sh adiutriel
 ```
 
-Without it, git has no identity and refuses to commit, which is the intended
-failure mode: nothing signs or authors as the wrong account by accident.
+`user.useConfigOnly` is set in `.gitconfig`, so without the include git refuses
+to commit instead of silently authoring as `<user>@<hostname>`. Nothing signs
+or authors as the wrong account by accident.
+
+Anything tied to one machine rather than one account, such as repo-specific
+credential helpers or URL rewrites, goes in an untracked `~/.gitconfig.machine`,
+which `.gitconfig` also includes.
 
 ## Secrets
 
@@ -72,7 +71,7 @@ you. The token is a bearer credential; biometric unlock is not.
 ./install.sh
 ```
 
-Creates symlinks in `$HOME`, and links `bin/` into `~/.local/bin`. Existing symlinks are replaced; existing files are backed up as `<file>.bak`.
+Creates symlinks in `$HOME`, links `bin/` into `~/.local/bin`, and links the chosen git identity (see above) as `~/.gitconfig.local`. Existing symlinks are replaced; existing files are backed up as `<file>.bak`.
 
 ## License
 
