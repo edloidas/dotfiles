@@ -50,6 +50,22 @@ export ENABLE_BACKGROUND_TASKS=1
 export CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1
 export CLAUDE_CODE_NO_FLICKER=1
 
+# A daemon started from a Claude session (e.g. `herdr-core update`) hands that
+# session's env to every pane, and claude then runs as a child without a
+# transcript. Keep the vars only when CLAUDE_PID really is an ancestor.
+if [[ -n $CLAUDE_PID ]]; then
+  () {
+    local pid=$PPID
+    while (( pid > 1 )); do
+      (( pid == CLAUDE_PID )) && return
+      pid=${$(ps -o ppid= -p $pid 2>/dev/null)//[^0-9]/}
+    done
+    unset CLAUDECODE CLAUDE_CODE_CHILD_SESSION CLAUDE_CODE_SESSION_ID CLAUDE_PID \
+      CLAUDE_CODE_ENTRYPOINT CLAUDE_CODE_EXECPATH CLAUDE_CODE_SESSION_ATTENDED \
+      CLAUDE_CODE_MESSAGING_SOCKET CLAUDE_CODE_MESSAGING_TOKEN CLAUDE_EFFORT
+  }
+fi
+
 # Enonic
 export XP_HOME="$HOME/.enonic/xp_home"
 # Sandbox: export XP_HOME="$HOME/.enonic/sandboxes/XP_7_15"
