@@ -135,6 +135,21 @@ alias lzd="lazydocker"
 alias pnpx="pnpm dlx"
 alias reload="exec $SHELL"
 
+# Resume the last claude session that ended in this shell; the SessionEnd hook in
+# ~/.claude/settings.json writes "<session_id> <cwd>" to this file
+export CLAUDE_LAST_SESSION_FILE="${XDG_RUNTIME_DIR:-/tmp}/claude-last-session.$$"
+zshexit() { rm -f "$CLAUDE_LAST_SESSION_FILE" }
+
+cr() {
+  local id dir
+  [[ -r $CLAUDE_LAST_SESSION_FILE ]] && read -r id dir < "$CLAUDE_LAST_SESSION_FILE"
+  if [[ -n $id ]]; then
+    ( cd "$dir" && claude --resume "$id" "$@" )
+  else
+    claude --continue "$@"
+  fi
+}
+
 # Install dependencies in every subfolder with package.json (detects pm from lock file)
 iall() {
   find . -maxdepth 4 -name "package.json" \
